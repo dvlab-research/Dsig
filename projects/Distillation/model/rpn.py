@@ -1,4 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from typing import Dict, List, Optional, Tuple, Union
 
 import torch
@@ -323,7 +322,6 @@ class DistillRPN(nn.Module):
         anchors = self.anchor_generator(features)
 
         pred_objectness_logits, pred_anchor_deltas = self.rpn_head(features)
-
 
         # Transpose the Hi*Wi*A dimension to the middle:
         pred_objectness_logits = [

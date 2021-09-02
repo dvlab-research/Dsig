@@ -1,4 +1,3 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import inspect
 import logging
 import numpy as np
@@ -280,7 +279,7 @@ class TeacherROIHeads(ROIHeads):
         pool_features = box_features
         box_features = self.box_head(box_features)
         pred_class_logits, pred_proposal_deltas = self.box_predictor(box_features)
-        # del box_features
+
         return {'cls_logits': pred_class_logits, 'proposal_deltas': pred_proposal_deltas}, \
                {"head_features": box_features, "pool_features": pool_features}
 
@@ -395,25 +394,12 @@ class TeacherROILoss(FastRCNNOutputs):
         else:
             return F.cross_entropy(self.pred_class_logits, self.gt_classes, reduction="none")
 
-    def top_celoss_idx(self, bg_num, mine_num):
-        ce_loss = self.losses()
-        ce_loss_list = torch.split(ce_loss, bg_num)
-        top_idx_list = []
-        for i, l in enumerate(ce_loss_list):
-            _, top_idx = torch.topk(l, mine_num)
-            top_idx_list.append(top_idx)
-        return top_idx_list
-
     def top_bg_idx_with_threshold(self, bg_num, max_mine_num, threshold):
         ce_loss = self.losses()
         ce_loss_list = torch.split(ce_loss, bg_num)
         idx_list = []
         for i, l in enumerate(ce_loss_list):
             higher_than_thrs_idx = (l >= threshold).nonzero()
-            # import pdb;pdb.set_trace(
-            # if len(higher_than_thrs_idx) >= max_mine_num:
-            #     _, top_idx = torch.topk(l, max_mine_num)
-            # else:
             top_idx = higher_than_thrs_idx.squeeze()
             idx_list.append(top_idx)
         return idx_list

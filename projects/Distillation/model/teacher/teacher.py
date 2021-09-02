@@ -1,7 +1,6 @@
 from detectron2.modeling.backbone import build_backbone
 from detectron2.modeling.proposal_generator import build_proposal_generator
 from detectron2.modeling.roi_heads import build_roi_heads
-from detectron2.checkpoint import DetectionCheckpointer
 
 from torch import nn
 

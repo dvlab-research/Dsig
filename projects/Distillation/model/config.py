@@ -7,12 +7,10 @@ def add_distillation_cfg(cfg):
 
     # Debug
     cfg.MODEL.MOBILENETV2.DEBUG = 0
-
     cfg.MODEL.MOBILENETV2.OUT_FEATURES = ['m2']
     cfg.MODEL.MOBILENETV2.NORM = 'FrozenBN'
 
     cfg.MODEL.EFFICIENTNET = CN()
-
     cfg.MODEL.EFFICIENTNET.MODEL_NAME = 'efficientnet-b0'
     cfg.MODEL.EFFICIENTNET.OUT_FEATURES = ['e2', 'e3', 'e4', 'e5']
     cfg.MODEL.EFFICIENTNET.NORM = 'FrozenBN'
@@ -34,7 +32,6 @@ def add_distillation_cfg(cfg):
     cfg.KD.RPN_LOC_LOSS_WEIGHT = 1.0
 
     cfg.KD.REGION_CORRELATION_LOSS_ON = False
-    cfg.KD.REGION_CORRELATION_LOSS_WEIGHT = 1.0
     cfg.KD.REGION_CORRELATION_LOSS_USE_BG_FEATURE = False
     cfg.KD.REGION_CORRELATION_LOSS_WEIGHT_POOL = 1.0
 
@@ -63,9 +60,6 @@ def add_distillation_cfg(cfg):
     cfg.KD.USE_SEMANTIC_PAIRWISE_LOSS = False
 
     cfg.SEED = 15
-
-    cfg.KD.USE_MLP_HEAD = False
-    cfg.KD.USE_TEACHER_BOX = False
     cfg.KD.TEMPERATURE = 1.0
 
     add_teacher_cfg(cfg)

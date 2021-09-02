@@ -191,9 +191,6 @@ class ROIHeads(torch.nn.Module):
             proposals_per_image_positive = proposals_per_image[sampled_fg_idxs]
             proposals_per_image_positive.gt_classes = gt_classes_positive
 
-            # proposals_per_image_negative = proposals_per_image[sampled_bg_idxs[:len(sampled_fg_idxs)]]
-            # proposals_per_image_negative.gt_classes = gt_classes_negative[:len(sampled_fg_idxs)]
-
             proposals_per_image_negative = proposals_per_image[sampled_bg_idxs]
             proposals_per_image_negative.gt_classes = gt_classes_negative
 
@@ -591,16 +588,7 @@ class DistillROIHeads(ROIHeads):
         else:
             pred_instances, _ = self.box_predictor.inference((pred_class_logits, pred_proposal_deltas), proposals)
             return pred_instances
-    #
-    # def _forward_mask_feature(self, features, proposals):
-    #
-    #     features = [features[f] for f in self.mask_in_features]
-    #
-    #     # The loss is only defined on positive proposals.
-    #     # proposals, _ = select_foreground_proposals(proposals, self.num_classes)
-    #     proposal_boxes = [x.proposal_boxes for x in proposals]
-    #     mask_features = self.mask_pooler(features, proposal_boxes)
-    #     return mask_features
+
 
     def _forward_mask(
             self, features: Dict[str, torch.Tensor], instances: List[Instances]
@@ -692,7 +680,6 @@ class DistillROILoss(object):
         self.T = temperature
 
         box_type = type(proposals[0].proposal_boxes)
-        # cat(..., dim=0) concatenates over all images in the batch
         self.proposals = box_type.cat([p.proposal_boxes for p in proposals])
         assert not self.proposals.tensor.requires_grad, "Proposals should not require gradients!"
         self.image_shapes = [x.image_size for x in proposals]

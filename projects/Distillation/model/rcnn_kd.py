@@ -57,7 +57,6 @@ class Distillation(nn.Module):
             use_kd_box_feature_loss,
             use_region_correlation_loss,
             use_region_correlation_bg_features,
-            use_region_correlation_head_loss,
             use_region_correlation_pool_loss,
             use_feature_roipool_fg_loss,
             use_feature_roipool_bg_loss,
@@ -72,7 +71,6 @@ class Distillation(nn.Module):
             kd_roi_reg_loss_weight,
             kd_rpn_cls_loss_weight,
             kd_rpn_loc_loss_weight,
-            region_corr_loss_weight,
             region_corr_loss_weight_pool,
             feature_roipool_fg_loss_weight,
             feature_roipool_bg_loss_weight,
@@ -128,7 +126,6 @@ class Distillation(nn.Module):
         self.use_kd_box_feature_loss = use_kd_box_feature_loss
         self.use_region_correlation_loss = use_region_correlation_loss
         self.use_region_correlation_bg_features = use_region_correlation_bg_features
-        self.use_region_correlation_head_loss = use_region_correlation_head_loss
         self.use_region_correlation_pool_loss = use_region_correlation_pool_loss
         self.use_feature_roipool_fg_loss = use_feature_roipool_fg_loss
         self.use_feature_roipool_bg_loss = use_feature_roipool_bg_loss
@@ -160,7 +157,6 @@ class Distillation(nn.Module):
             self.kd_rpn_cls_loss_weight = kd_rpn_cls_loss_weight
             self.kd_rpn_loc_loss_weight = kd_rpn_loc_loss_weight
 
-            self.region_corr_loss_weight = region_corr_loss_weight
             self.region_corr_loss_weight_pool = region_corr_loss_weight_pool
             self.feature_roipool_fg_loss_weight = feature_roipool_fg_loss_weight
             self.feature_roipool_bg_loss_weight = feature_roipool_bg_loss_weight
@@ -210,7 +206,6 @@ class Distillation(nn.Module):
             "use_kd_box_feature_loss": cfg.KD.BOX_FEATURE_ON,
             "use_region_correlation_loss": cfg.KD.REGION_CORRELATION_LOSS_ON,
             "use_region_correlation_bg_features": cfg.KD.REGION_CORRELATION_LOSS_USE_BG_FEATURE,
-            "use_region_correlation_head_loss": cfg.KD.REGION_CORRELATION_HEAD_LOSS,
             "use_region_correlation_pool_loss": cfg.KD.REGION_CORRELATION_POOL_LOSS,
             "use_feature_roipool_fg_loss": cfg.KD.FEATURE_ROIPOOL_FG_LOSS_ON,
             "use_feature_roipool_bg_loss": cfg.KD.FEATURE_ROIPOOL_BG_LOSS_ON,
@@ -222,7 +217,6 @@ class Distillation(nn.Module):
             "kd_roi_reg_loss_weight": cfg.KD.ROI_REG_LOSS_WEIGHT,
             "kd_rpn_cls_loss_weight": cfg.KD.RPN_CLS_LOSS_WEIGHT,
             "kd_rpn_loc_loss_weight": cfg.KD.RPN_LOC_LOSS_WEIGHT,
-            "region_corr_loss_weight": cfg.KD.REGION_CORRELATION_LOSS_WEIGHT,
             "region_corr_loss_weight_pool": cfg.KD.REGION_CORRELATION_LOSS_WEIGHT_POOL,
             "feature_roipool_fg_loss_weight": cfg.KD.FEATURE_ROIPOOL_FG_LOSS_WEIGHT,
             "feature_roipool_bg_loss_weight": cfg.KD.FEATURE_ROIPOOL_BG_LOSS_WEIGHT,
@@ -275,7 +269,6 @@ class Distillation(nn.Module):
         if not self.training:
             return self.inference(batched_inputs)
 
-        # data preprocess
         images = self.preprocess_image(
             batched_inputs, self.pixel_mean, self.pixel_std, self.rgb
         )
@@ -284,10 +277,10 @@ class Distillation(nn.Module):
         else:
             gt_instances = None
 
-        # process student
+        # student
         features = self.backbone(images.tensor)
 
-        # process teacher
+        # teacher
         if self.use_kd:
             teacher_images = self.teacher_preprocess_image(batched_inputs)
             with torch.no_grad():
@@ -304,6 +297,7 @@ class Distillation(nn.Module):
                 feature_kd_loss += self.feature_kd_loss(s_features[i], t_features[f]).mean()
             kd_losses['loss_d_f'] = feature_kd_loss * self.kd_feature_loss_weight
 
+        # SKD
         if self.use_semantic_pairwise_loss:
             feature_semantic_pairwise_loss = 0.
             s_features = [features[f] for f in features]
@@ -347,15 +341,10 @@ class Distillation(nn.Module):
         box_features, proposals_positive, num_fg_samples, proposals_bg, num_bg_samples = self.roi_heads(
             images, features, proposals, gt_instances
         )
-        if self.use_kd_roi_cls_loss or self.use_kd_roi_reg_loss or self.use_kd_box_feature_loss:
+        if self.use_kd_roi_cls_loss or self.use_kd_roi_reg_loss:
             teacher_proposals, teacher_logits, teacher_box_features = self.teacher.roi_heads(
                 teacher_images, t_features, detector_proposals
             )
-            if self.use_kd_box_feature_loss:
-                kd_losses['loss_d_b_f'] = nn.functional.mse_loss(
-                    box_features["pool_features"],
-                    teacher_box_features["pool_features"]
-                )
             if self.use_kd_roi_cls_loss or self.use_kd_roi_reg_loss:
                 kd_roi_losses = DistillROILoss(
                     self.bbox_reg_weights, detector_logits, teacher_logits, detector_proposals, self.smooth_l1_beta, self.temperature
@@ -365,135 +354,96 @@ class Distillation(nn.Module):
                 if self.use_kd_roi_reg_loss:
                     kd_losses['loss_d_roi_reg'] = kd_roi_losses['loss_d_roi_reg'] * self.kd_roi_reg_loss_weight
 
-        # local region correlation matrix loss
-        if self.use_region_correlation_loss:
 
-            logits_fg, box_features_fg = self.roi_heads(
-                images, features, proposals_positive, None
+        # dsig
+        logits_fg, box_features_fg = self.roi_heads(
+            images, features, proposals_positive, None
+        )
+
+        # extract loss (cls + bbox reg)
+        _, logits_fg_teacher, box_features_teacher_fg = self.teacher.roi_heads(
+            teacher_images, t_features, proposals_positive
+        )
+
+        pool_features_fg = split_features_per_image(box_features_fg["pool_features"], num_fg_samples)
+        pool_features_teacher_fg = split_features_per_image(box_features_teacher_fg["pool_features"],
+                                                            num_fg_samples)
+
+        # add bg features.
+        if self.use_region_correlation_bg_features:
+            _, box_features_bg = self.roi_heads(
+                images, features, proposals_bg, None
+            )
+            _, bg_logits, box_features_teacher_bg = self.teacher.roi_heads(
+                teacher_images, t_features, proposals_bg
             )
 
-            # extract loss (cls + bbox reg)
-            _, logits_fg_teacher, box_features_teacher_fg = self.teacher.roi_heads(
-                teacher_images, t_features, proposals_positive
-            )
+            pool_features_bg = split_features_per_image(box_features_bg["pool_features"], num_bg_samples)
+            pool_features_teacher_bg = split_features_per_image(box_features_teacher_bg["pool_features"],
+                                                                num_bg_samples)
+            if self.use_bg_weight_scale:
+                bg_weight_scales = [num_fg_sample / num_bg_sample * self.bg_weight_alpha
+                                   for num_fg_sample, num_bg_sample in zip(num_fg_samples, num_bg_samples)]
 
-            # List[tensor[N1, ...], tensor[N2, ...], ...]
-            pool_features_fg = split_features_per_image(box_features_fg["pool_features"], num_fg_samples)
-            pool_features_teacher_fg = split_features_per_image(box_features_teacher_fg["pool_features"],
-                                                                num_fg_samples)
+            # bg mining
+            if self.use_bg_feature_mining:
+                bg_pred_class_logits = bg_logits["cls_logits"]
+                bg_pred_proposal_deltas = bg_logits["proposal_deltas"]
 
-            # utilize bg features
-            if self.use_region_correlation_bg_features:
-                _, box_features_bg = self.roi_heads(
-                    images, features, proposals_bg, None
-                )
-                _, bg_logits, box_features_teacher_bg = self.teacher.roi_heads(
-                    teacher_images, t_features, proposals_bg
-                )
+                if self.use_bg_feature_mining_thrs:
+                    bg_idx_list = TeacherROILoss(
+                        self.bbox_reg_weights,
+                        bg_pred_class_logits,
+                        bg_pred_proposal_deltas,
+                        proposals_bg,
+                        self.smooth_l1_beta,
+                        self.box_reg_loss_type
+                    ).top_bg_idx_with_threshold(num_bg_samples, self.mine_num_bg, self.mine_bg_thrs)
 
-                # cuda oom when mine too large nums bg --> solved
-                pool_features_bg = split_features_per_image(box_features_bg["pool_features"], num_bg_samples)
-                pool_features_teacher_bg = split_features_per_image(box_features_teacher_bg["pool_features"],
-                                                                    num_bg_samples)
-                if self.use_bg_weight_scale:
-                    bg_weight_scales = [num_fg_sample * self.bg_weight_alpha
-                                       for num_fg_sample, num_bg_sample in zip(num_fg_samples, num_bg_samples)]
+                pool_features_bg_topk = select_topk_features_as_fg(pool_features_bg, bg_idx_list)
+                pool_features_teacher_bg_topk = select_topk_features_as_fg(pool_features_teacher_bg, bg_idx_list)
 
-                # we will consider bg mining later
-                if self.use_bg_feature_mining:
-                    bg_pred_class_logits = bg_logits["cls_logits"]
-                    bg_pred_proposal_deltas = bg_logits["proposal_deltas"]
-
-                    if self.use_bg_feature_mining_thrs:
-                        bg_idx_list = TeacherROILoss(
-                            self.bbox_reg_weights,
-                            bg_pred_class_logits,
-                            bg_pred_proposal_deltas,
-                            proposals_bg,
-                            self.smooth_l1_beta,
-                            self.box_reg_loss_type
-                        ).top_bg_idx_with_threshold(num_bg_samples, self.mine_num_bg, self.mine_bg_thrs)
-                    else:
-                        bg_idx_list = TeacherROILoss(
-                            self.bbox_reg_weights,
-                            bg_pred_class_logits,
-                            bg_pred_proposal_deltas,
-                            proposals_bg,
-                            self.smooth_l1_beta,
-                            self.box_reg_loss_type
-                        ).top_celoss_idx(num_bg_samples, self.mine_num_bg)
-
-                    pool_features_bg_topk = select_topk_features_as_fg(pool_features_bg, bg_idx_list)
-                    pool_features_teacher_bg_topk = select_topk_features_as_fg(pool_features_teacher_bg, bg_idx_list)
-
-                    # import pdb;pdb.set_trace()
-                    pool_features_fg_cat_bgmine = cat_fg_bg_features(pool_features_fg, pool_features_bg_topk)
-                    pool_features_teacher_fg_cat_bgmine = cat_fg_bg_features(
-                        pool_features_teacher_fg, pool_features_teacher_bg_topk
-                    )
-
-                # pool feat bg mse loss
-                if self.use_feature_roipool_bg_loss:
-                    pool_features_bg_mse_loss = 0.
-                    if self.use_bg_weight_scale:
-                        for feat_s, feat_t, bg_weight_scale in zip(pool_features_bg, pool_features_teacher_bg, bg_weight_scales):
-                            pool_features_bg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean() * bg_weight_scale
-                    else:
-                        for feat_s, feat_t in zip(pool_features_bg, pool_features_teacher_bg):
-                            pool_features_bg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean()
-
-            if self.use_region_correlation_head_loss:
-                head_features_fg = box_features_fg["head_features"]
-                head_features_teacher_fg = box_features_teacher_fg["head_features"]
-
-                # List[tensor[N1, ...], tensor[N2, ...], ...]
-                head_features_fg = split_features_per_image(head_features_fg, num_fg_samples)
-                head_features_teacher_fg = split_features_per_image(head_features_teacher_fg, num_fg_samples)
-
-                teacher_region_correlation_matrices_head = generate_correlation_matrix(
-                    head_features_teacher_fg
-                )  # List[M, M], M varies
-                student_region_correlation_matrices_head = generate_correlation_matrix(
-                    head_features_fg
-                )  # List[M, M]
-
-                region_corr_loss_head = corr_mat_mse_loss(
-                    teacher_region_correlation_matrices_head,
-                    student_region_correlation_matrices_head,
-                    reduction=self.corr_mat_simloss_reduction
+                pool_features_fg_cat_bgmine = cat_fg_bg_features(pool_features_fg, pool_features_bg_topk)
+                pool_features_teacher_fg_cat_bgmine = cat_fg_bg_features(
+                    pool_features_teacher_fg, pool_features_teacher_bg_topk
                 )
 
-            pool_features_fg = [torch.flatten(feat, 1) for feat in pool_features_fg]
-            pool_features_teacher_fg = [torch.flatten(feat, 1) for feat in pool_features_teacher_fg]
-
-
-            teacher_region_correlation_matrices_pool = generate_correlation_matrix(
-                pool_features_teacher_fg if not self.use_bg_feature_mining else pool_features_teacher_fg_cat_bgmine,
-                simf=self.corr_mat_sim_func
-            )  # List[M, M], M varies
-            student_region_correlation_matrices_pool = generate_correlation_matrix(
-                pool_features_fg if not self.use_bg_feature_mining else pool_features_fg_cat_bgmine,
-                simf=self.corr_mat_sim_func
-            )  # List[M, M]
-
-            region_corr_loss_pool = corr_mat_mse_loss(
-                teacher_region_correlation_matrices_pool,
-                student_region_correlation_matrices_pool,
-                reduction=self.corr_mat_simloss_reduction
-            )
-            # pool feat fg mse loss
-            pool_features_fg_mse_loss = 0.
-            for feat_s, feat_t in zip(pool_features_fg, pool_features_teacher_fg):
-                pool_features_fg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean()
-
-            if self.use_feature_roipool_fg_loss:
-                kd_losses['loss_roipool_fg'] = pool_features_fg_mse_loss * self.feature_roipool_fg_loss_weight
+            # pool feat bg mse loss
             if self.use_feature_roipool_bg_loss:
-                kd_losses['loss_roipool_bg'] = pool_features_bg_mse_loss * self.feature_roipool_bg_loss_weight
-            if self.use_region_correlation_head_loss:
-                kd_losses['loss_region_corr_loss_head'] = region_corr_loss_head * self.region_corr_loss_weight
-            if self.use_region_correlation_pool_loss:
-                kd_losses['loss_region_corr_loss_pool'] = region_corr_loss_pool * self.region_corr_loss_weight_pool
+                pool_features_bg_mse_loss = 0.
+                if self.use_bg_weight_scale:
+                    for feat_s, feat_t, bg_weight_scale in zip(pool_features_bg, pool_features_teacher_bg, bg_weight_scales):
+                        pool_features_bg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean() * bg_weight_scale
+                else:
+                    for feat_s, feat_t in zip(pool_features_bg, pool_features_teacher_bg):
+                        pool_features_bg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean()
+
+        pool_features_fg = [torch.flatten(feat, 1) for feat in pool_features_fg]
+        pool_features_teacher_fg = [torch.flatten(feat, 1) for feat in pool_features_teacher_fg]
+
+        pool_features_fg_mse_loss = 0.
+        for feat_s, feat_t in zip(pool_features_fg, pool_features_teacher_fg):
+            pool_features_fg_mse_loss += self.feature_kd_loss(feat_s, feat_t).mean()
+
+        teacher_region_correlation_matrices_pool = generate_correlation_matrix(
+            pool_features_teacher_fg if not self.use_bg_feature_mining else pool_features_teacher_fg_cat_bgmine,
+            simf=self.corr_mat_sim_func
+        )
+        student_region_correlation_matrices_pool = generate_correlation_matrix(
+            pool_features_fg if not self.use_bg_feature_mining else pool_features_fg_cat_bgmine,
+            simf=self.corr_mat_sim_func
+        )
+
+        region_corr_loss_pool = corr_mat_mse_loss(
+            teacher_region_correlation_matrices_pool,
+            student_region_correlation_matrices_pool,
+            reduction=self.corr_mat_simloss_reduction
+        )
+
+        kd_losses['loss_roipool_fg'] = pool_features_fg_mse_loss * self.feature_roipool_fg_loss_weight
+        if self.use_feature_roipool_bg_loss:
+            kd_losses['loss_roipool_bg'] = pool_features_bg_mse_loss * self.feature_roipool_bg_loss_weight
+        kd_losses['loss_region_corr_loss_pool'] = region_corr_loss_pool * self.region_corr_loss_weight_pool
 
         if self.vis_period > 0:
             storage = get_event_storage()
