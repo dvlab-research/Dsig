@@ -1,0 +1,59 @@
+_BASE_: "Base-Distillation.yaml"
+OUTPUT_DIR: output/distillationtmp
+MODEL:
+  PIXEL_MEAN: [103.530, 116.280, 123.675]
+  PIXEL_STD: [57.375, 57.120, 58.395]
+  META_ARCHITECTURE: "RetinaNetKD"
+  BACKBONE:
+    NAME: "build_retinanet_e0_fpn_backbone"
+  WEIGHTS: "projects/Distillation/pretrained/eb0-r101-rt.pth"
+  EFFICIENTNET:
+    NORM: "FrozenBN"
+    OUT_FEATURES: ['e2', 'e3', 'e4', 'e5']
+  FPN:
+    IN_FEATURES: ["e2", "e3", "e4", "e5"]
+  RETINANET:
+    IOU_THRESHOLDS: [0.4, 0.5]
+    IOU_LABELS: [0, -1, 1]
+    SMOOTH_L1_LOSS_BETA: 0.0
+  ANCHOR_GENERATOR:
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
+
+TEACHER:
+  MODEL:
+    META_ARCHITECTURE: "RetinaNet"
+    BACKBONE:
+      NAME: "build_retinanet_resnet_fpn_backbone"
+    RESNETS:
+      OUT_FEATURES: ["res3", "res4", "res5"]
+      DEPTH: 101
+    ANCHOR_GENERATOR:
+      SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
+    FPN:
+      IN_FEATURES: ["res3", "res4", "res5"]
+    RETINANET:
+      IOU_THRESHOLDS: [0.4, 0.5]
+      IOU_LABELS: [0, -1, 1]
+
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.005
+  MAX_ITER: 180000
+  STEPS:
+  - 120000
+  - 160000
+  WARMUP_FACTOR: 0.001
+  WARMUP_ITERS: 1000
+
+KD:
+  FEATURE_ON: True
+  FEATURE_LOSS_WEIGHT: 0.5
+  ROI_CLS_ON: False
+  ROI_CLS_LOSS_WEIGHT: 3.0
+  ROI_REG_ON: False
+  ROI_REG_LOSS_WEIGHT: 1.0
+  REGION_CORRELATION_LOSS_ON: True
+  REGION_CORRELATION_LOSS_WEIGHT: 1.0
+  FEATURE_ROIPOOL_FG_LOSS_ON: True
+  FEATURE_ROIPOOL_FG_LOSS_WEIGHT: 0.5
+

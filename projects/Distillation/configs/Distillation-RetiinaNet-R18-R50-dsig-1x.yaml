@@ -1,0 +1,62 @@
+_BASE_: "Base-Distillation.yaml"
+OUTPUT_DIR: output/distillationtmp
+MODEL:
+  META_ARCHITECTURE: "RetinaNetKD"
+  WEIGHTS: "projects/Distillation/pretrained/r18-r50-rt.pth"
+  PIXEL_STD: [57.375, 57.120, 58.395]
+  BACKBONE:
+    NAME: "build_retinanet_resnet_fpn_backbone"
+  RESNETS:
+    OUT_FEATURES: ["res3", "res4", "res5"]
+    DEPTH: 18
+    RES2_OUT_CHANNELS: 64
+  ANCHOR_GENERATOR:
+    SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
+  FPN:
+    IN_FEATURES: ["res3", "res4", "res5"]
+  RETINANET:
+    IOU_THRESHOLDS: [0.4, 0.5]
+    IOU_LABELS: [0, -1, 1]
+    SMOOTH_L1_LOSS_BETA: 0.0
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.005  # Note that RetinaNet uses a different default learning rate
+  STEPS: (120000, 160000)
+  MAX_ITER: 180000
+
+
+TEACHER:
+  MODEL:
+    META_ARCHITECTURE: "RetinaNet"
+    BACKBONE:
+      NAME: "build_retinanet_resnet_fpn_backbone"
+    RESNETS:
+      OUT_FEATURES: ["res3", "res4", "res5"]
+      DEPTH: 50
+    ANCHOR_GENERATOR:
+      SIZES: !!python/object/apply:eval ["[[x, x * 2**(1.0/3), x * 2**(2.0/3) ] for x in [32, 64, 128, 256, 512 ]]"]
+    FPN:
+      IN_FEATURES: ["res3", "res4", "res5"]
+    RETINANET:
+      IOU_THRESHOLDS: [0.4, 0.5]
+      IOU_LABELS: [0, -1, 1]
+
+INPUT:
+  MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
+DATASETS:
+  TRAIN: ("coco_2017_train",)
+  TEST: ("coco_2017_val",)
+
+VERSION: 2
+
+KD:
+  FEATURE_ON: True
+  FEATURE_LOSS_WEIGHT: 0.5
+  ROI_CLS_ON: True
+  ROI_CLS_LOSS_WEIGHT: 1.0
+  ROI_REG_ON: True
+  ROI_REG_LOSS_WEIGHT: 1.0
+  REGION_CORRELATION_LOSS_ON: True
+  REGION_CORRELATION_LOSS_WEIGHT_POOL: 1.0
+  FEATURE_ROIPOOL_FG_LOSS_ON: True
+  FEATURE_ROIPOOL_FG_LOSS_WEIGHT: 0.5

@@ -20,9 +20,6 @@ from .teacher.roi_heads import TeacherROILoss
 import sys
 sys.path.append('../')
 from utils import mse_loss_withmask
-from utils import similarity_mse_loss
-from utils import similarity_l1_loss
-from utils import kl_similarity_loss
 from utils import sim_dis_compute
 from utils import generate_correlation_matrix, corr_mat_mse_loss, split_features_per_image
 from utils import fuse_bg_features, cat_fg_bg_features, select_topk_features_as_fg
@@ -144,10 +141,8 @@ class Distillation(nn.Module):
         if self.use_kd:
             self.teacher = teacher
             self.teacher.requires_grad = False
-            # self.teacher.eval()
             self.feature_kd_loss = mse_loss_withmask
 
-            # self.feature_kd_loss = torch.nn.KLDivLoss()
             for p in self.teacher.parameters():
                 p.requires_grad = False
             self.kd_feature_loss_weight = kd_feature_loss_weight
@@ -168,11 +163,6 @@ class Distillation(nn.Module):
             self.use_bg_feature_mining_thrs = use_bg_feature_mining_thrs
             self.use_bg_weight_scale = use_bg_weight_scale
             self.bg_weight_alpha = bg_weight_alpha
-
-            self.similarity_mse_loss = similarity_mse_loss
-            self.similarity_l1_loss = similarity_l1_loss
-            self.kl_similarity_loss = kl_similarity_loss
-
             self.temperature = temperature
 
             self.smooth_l1_beta = smooth_l1_beta

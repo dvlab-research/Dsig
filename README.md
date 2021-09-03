@@ -47,33 +47,31 @@ For **debugging**:
 
 **Faster R-CNN:**
 
-| Experiment | Schedule |  AP  | Config | Model |
-| ---------- | :------: | :--: | :----: | :---: |
-| R18-R50    |    1x    |      |        |       |
-| R50-R101   |    1x    |      |        |       |
-| R101-R152  |    1x    |      |        |       |
-| MNV2-R50   |    1x    |      |        |       |
-| EB0-R101   |    1x    |      |        |       |
+| Experiment | Schedule |  AP   |                            Config                            |      Model      |
+| ---------- | :------: | :---: | :----------------------------------------------------------: | :-------------: |
+| R18-R50    |    1x    | 37.25 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml) | [googledrive]() |
+| R50-R101   |    1x    | 40.57 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R50-R101-dsig-1x.yaml) | [googledrive]() |
+| R101-R152  |    1x    | 41.65 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R101-R152-dsig-1x.yaml) | [googledrive]() |
+| MNV2-R50   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-MNV2-R50-dsig-1x.yaml) | [googledrive]() |
+| EB0-R101   |    1x    | 37.74 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-EB0-R101-dsig-1x.yaml) | [googledrive]() |
 
 **RetinaNet:**
 
-| Experiment | Schedule |  AP  | Config | Model |
-| ---------- | :------: | :--: | :----: | :---: |
-| R18-R50    |    1x    |      |        |       |
-| MNV2-R50   |    1x    |      |        |       |
-| EB0-R101   |    1x    |      |        |       |
+| Experiment | Schedule |  AP   |                            Config                            |      Model      |
+| ---------- | :------: | :---: | :----------------------------------------------------------: | :-------------: |
+| R18-R50    |    1x    | 34.72 | [config](./projects/Distillation/configs/Distillation-RetinaNet-R18-R50-dsig-1x.yaml) | [googledrive]() |
+| MNV2-R50   |    1x    | 32.16 | [config](./projects/Distillation/configs/Distillation-RetinaNet-MNV2-R50-dsig-1x.yaml) | [googledrive]() |
+| EB0-R101   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-RetinaNet-EB0-R101-dsig-1x.yaml) | [googledrive]() |
 
 ## Citation
 
 ```
-​```bib
 @inproceedings{chen2021dsig,
     title={Deep Structured Instance Graph for Distilling Object Detectors},
     author={Yixin Chen, Pengguang Chen, Shu Liu, Liwei Wang, and Jiaya Jia},
     booktitle={IEEE International Conference on Computer Vision (ICCV)},
     year={2021},
 }
-​```
 ```
 
 ## Contact
