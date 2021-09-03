@@ -28,19 +28,19 @@ Follow the install instructions in detectron2, note that in this repo we use det
 We prepare training [configs](./projects/Distillation/configs) following the detectron2 format. For **training** a Faster R-CNN R18-FPN student with a Faster R-CNN R50-FPN teacher on 4 GPUs:
 
 ```
-./start_train.sh train projects/Distillation/configs/01_Faster_RCNN_R18_R50_dsig_1x.yaml
+./start_train.sh train projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml
 ```
 
 For **testing**:
 
 ```
-./start_train.sh eval projects/Distillation/configs/01_Faster_RCNN_R18_R50_dsig_1x.yaml
+./start_train.sh eval projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml
 ```
 
 For **debugging**:
 
 ```
-./start_train.sh debugtrain projects/Distillation/configs/01_Faster_RCNN_R18_R50_dsig_1x.yaml
+./start_train.sh debugtrain projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml
 ```
 
 ## Results and Models
