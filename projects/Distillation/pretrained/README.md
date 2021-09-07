@@ -13,7 +13,7 @@ wget -c https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_1
 python merge.py
 ```
 
-You can also replace the student and teacher with other pre-trained weights from [detectron2 Model Zoo](https://github.com/facebookresearch/detectron2/blob/main/MODEL_ZOO.md). Here we provide some pre-weights that are already merged:
+You can also replace the student and teacher with other pre-trained weights from [detectron2 Model Zoo](https://github.com/facebookresearch/detectron2/blob/main/MODEL_ZOO.md). Here we provide some [pre-weights](https://drive.google.com/drive/folders/1FHaiIyIRVNBzmFM0yl4ycZGtODtXzmga?usp=sharing) that are already merged:
 
 ##### Faster R-CNN
 
