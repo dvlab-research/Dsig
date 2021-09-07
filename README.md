@@ -47,21 +47,23 @@ For **debugging**:
 
 **Faster R-CNN:**
 
-| Experiment | Schedule |  AP   |                            Config                            |      Model      |
-| ---------- | :------: | :---: | :----------------------------------------------------------: | :-------------: |
-| R18-R50    |    1x    | 37.25 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml) | [googledrive]() |
-| R50-R101   |    1x    | 40.57 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R50-R101-dsig-1x.yaml) | [googledrive]() |
-| R101-R152  |    1x    | 41.65 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R101-R152-dsig-1x.yaml) | [googledrive]() |
-| MNV2-R50   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-MNV2-R50-dsig-1x.yaml) | [googledrive]() |
-| EB0-R101   |    1x    | 37.74 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-EB0-R101-dsig-1x.yaml) | [googledrive]() |
+| Experiment | Schedule |  AP   |                            Config                            |                            Model                             |
+| ---------- | :------: | :---: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| R18-R50    |    1x    | 37.25 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R18-R50-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/12VPna6VEqLGqXRifkcnh848_QRuc624z/view?usp=sharing) |
+| R50-R101   |    1x    | 40.57 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R50-R101-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1-yUb6eJnUZPxdMU_XCi10hmXhOAVwwO1/view?usp=sharing) |
+| R101-R152  |    1x    | 41.65 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-R101-R152-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1-bUROLlttAu4phgsafEvgy4Sdv_Pqvnj/view?usp=sharing) |
+| MNV2-R50   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-MNV2-R50-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1Dxpt9H9WP0KYkM0OE7crmwR3XfwvFupc/view?usp=sharing) |
+| EB0-R101   |    1x    | 37.74 | [config](./projects/Distillation/configs/Distillation-FasterRCNN-EB0-R101-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1AHPIFCNZso8y3hO3EVcEEie9vopcgqHR/view?usp=sharing) |
 
 **RetinaNet:**
 
-| Experiment | Schedule |  AP   |                            Config                            |      Model      |
-| ---------- | :------: | :---: | :----------------------------------------------------------: | :-------------: |
-| R18-R50    |    1x    | 34.72 | [config](./projects/Distillation/configs/Distillation-RetinaNet-R18-R50-dsig-1x.yaml) | [googledrive]() |
-| MNV2-R50   |    1x    | 32.16 | [config](./projects/Distillation/configs/Distillation-RetinaNet-MNV2-R50-dsig-1x.yaml) | [googledrive]() |
-| EB0-R101   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-RetinaNet-EB0-R101-dsig-1x.yaml) | [googledrive]() |
+| Experiment | Schedule |  AP   |                            Config                            |                            Model                             |
+| ---------- | :------: | :---: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| R18-R50    |    1x    | 34.72 | [config](./projects/Distillation/configs/Distillation-RetinaNet-R18-R50-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1ZayyFP34yodgIgieSnG1IxX5p91a23M6/view?usp=sharing) |
+| MNV2-R50   |    1x    | 32.16 | [config](./projects/Distillation/configs/Distillation-RetinaNet-MNV2-R50-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1JnV7oeYwqmfD_GNrh24AqqXBO_Cc2zMB/view?usp=sharing) |
+| EB0-R101   |    1x    | 34.44 | [config](./projects/Distillation/configs/Distillation-RetinaNet-EB0-R101-dsig-1x.yaml) | [googledrive](https://drive.google.com/file/d/1DSrp64E1RtSybympdfgzKh4c72QISAj4/view?usp=sharing) |
+
+More models and results will be released soon.
 
 ## Citation
 
