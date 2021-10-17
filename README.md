@@ -6,11 +6,11 @@
 
 **Authors:** Yixin Chen, Pengguang Chen, Shu Liu, Liwei Wang, Jiaya Jia.
 
-[[pdf]()] [[slide]()] [[supp]()] [[bibtex](#Citation)]
+[[pdf](https://openaccess.thecvf.com/content/ICCV2021/papers/Chen_Deep_Structured_Instance_Graph_for_Distilling_Object_Detectors_ICCV_2021_paper.pdf)] [[arXiv](http://arxiv.org/abs/2109.12862)] [[supp](https://openaccess.thecvf.com/content/ICCV2021/supplemental/Chen_Deep_Structured_Instance_ICCV_2021_supplemental.pdf)] [[bibtex](#Citation)]
 
 ![](./fig/dsig.png)
 
-This repo provides the implementation of paper "[Deep Structured Instance Graph for Distilling Object Detectors]()"(Dsig) based on [detectron2](https://github.com/facebookresearch/detectron2). Specifically, aiming at solving the feature imbalance problem while further excavating the missing relation inside semantic instances, we design a graph whose nodes correspond to instance proposal-level features and edges represent the relation between nodes. We achieve new state-of-the-art results on the COCO object detection task with diverse student-teacher pairs on both one- and two-stage detectors.
+This repo provides the implementation of paper "[Deep Structured Instance Graph for Distilling Object Detectors](https://openaccess.thecvf.com/content/ICCV2021/papers/Chen_Deep_Structured_Instance_Graph_for_Distilling_Object_Detectors_ICCV_2021_paper.pdf)"(Dsig) based on [detectron2](https://github.com/facebookresearch/detectron2). Specifically, aiming at solving the feature imbalance problem while further excavating the missing relation inside semantic instances, we design a graph whose nodes correspond to instance proposal-level features and edges represent the relation between nodes. We achieve new state-of-the-art results on the COCO object detection task with diverse student-teacher pairs on both one- and two-stage detectors.
 
 ## Installation
 
@@ -68,11 +68,13 @@ More models and results will be released soon.
 ## Citation
 
 ```
-@inproceedings{chen2021dsig,
-    title={Deep Structured Instance Graph for Distilling Object Detectors},
-    author={Yixin Chen, Pengguang Chen, Shu Liu, Liwei Wang, and Jiaya Jia},
-    booktitle={IEEE International Conference on Computer Vision (ICCV)},
-    year={2021},
+@InProceedings{Chen_2021_ICCV,
+    author    = {Chen, Yixin and Chen, Pengguang and Liu, Shu and Wang, Liwei and Jia, Jiaya},
+    title     = {Deep Structured Instance Graph for Distilling Object Detectors},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2021},
+    pages     = {4359-4368}
 }
 ```
 
